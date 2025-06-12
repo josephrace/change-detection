@@ -6,6 +6,9 @@ jobs:
       a: ${{ steps.filter.outputs.a }}
       b: ${{ steps.filter.outputs.b }}
     steps:
+      - name: Print event
+        run: |
+          echo "Event name: ${{ github.context.event_name }}"
       - name: Checkout code
         uses: actions/checkout@v4
         with:
