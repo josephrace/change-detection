@@ -6,18 +6,21 @@ jobs:
       a: ${{ steps.filter.outputs.a }}
       b: ${{ steps.filter.outputs.b }}
     steps:
-      - name: Print event
-        run: |
-          echo "Event name: ${{ github.context.event_name }}"
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 2 # Needed to get previous commit on the branch
-      - name: Get current and previous commit SHAs
-        id: commits
+      - name: Set base commit
+        id: base
         run: |
-          echo "current=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-          echo "previous=$(git rev-parse HEAD^)" >> $GITHUB_OUTPUT
+          if [[ "${GITHUB_REF##*/}" == "main" ]]; then
+            BASE=$(git rev-parse HEAD^)
+          else
+            git fetch origin main:refs/remotes/origin/main
+            BASE=$(git rev-parse origin/main)
+          fi
+          echo "base_commit=$BASE" >> $GITHUB_OUTPUT
+          echo "current_commit=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       - name: Paths Filter (dorny/paths-filter)
         id: filter
         uses: dorny/paths-filter@v3
