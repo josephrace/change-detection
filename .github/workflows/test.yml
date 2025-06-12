@@ -6,16 +6,36 @@ jobs:
       a: ${{ steps.filter.outputs.a }}
       b: ${{ steps.filter.outputs.b }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
+      - name: Extract branch name
+        id: extract_branch
+        run: |
+          # refs/heads/branch-name -> branch-name
+          echo "branch_name=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          base: ${{ github.ref }}
+          fetch-depth: 2 # Needed to get previous commit on the branch
+          ref: ${{ steps.extract_branch.outputs.branch_name }}
+      - name: Get current and previous commit SHAs
+        id: commits
+        run: |
+          echo "current=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          echo "previous=$(git rev-parse HEAD^)" >> $GITHUB_OUTPUT
+      - name: Paths Filter (dorny/paths-filter)
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          base: ${{ steps.commits.outputs.previous }}
+          ref: ${{ steps.commits.outputs.current }}
           filters: |
             a:
               - 'a/**'
             b:
               - 'b/**'
+      - name: Print changed files
+        run: |
+          echo "Changed in 'a': ${{ steps.filter.outputs.a }}"
+          echo "Changed in 'b': ${{ steps.filter.outputs.b }}"
   job-a:
     needs: changes
     if: ${{ needs.changes.outputs.a == 'true' }}
