@@ -10,28 +10,26 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Get current and base commit SHAs
+      - name: Determine base and ref for paths-filter
         id: commits
         run: |
-          echo "current=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-          # GITHUB_REF may be refs/heads/<branch> or refs/tags/<tag>
-          branch="${GITHUB_REF#refs/heads/}"
-          if [ "$branch" = "$GITHUB_REF" ]; then
-            # Not a branch ref, fallback to extracting last part
-            branch="${GITHUB_REF##*/}"
-          fi
+          branch="${{ github.event.deployment.ref }}"
+          deployed_sha="${{ github.event.deployment.sha }}"
           if [ "$branch" = "main" ]; then
-            echo "base=$(git rev-parse HEAD^)" >> $GITHUB_OUTPUT
+            base=$(git rev-parse main^)
+            ref=$(git rev-parse main)
           else
-            base_commit=$(git merge-base origin/main HEAD)
-            echo "base=$base_commit" >> $GITHUB_OUTPUT
+            base=$(git rev-parse origin/main)
+            ref=$deployed_sha
           fi
+          echo "base=$base" >> $GITHUB_OUTPUT
+          echo "ref=$ref" >> $GITHUB_OUTPUT
       - name: Paths Filter (dorny/paths-filter)
         id: filter
         uses: dorny/paths-filter@v3
         with:
           base: ${{ steps.commits.outputs.base }}
-          ref: ${{ steps.commits.outputs.current }}
+          ref: ${{ steps.commits.outputs.ref }}
           filters: |
             a:
               - 'a/**'
