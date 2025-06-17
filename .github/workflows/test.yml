@@ -9,15 +9,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2 # Needed to get previous commit on the branch
+          fetch-depth: 0
       - name: Get current and base commit SHAs
         id: commits
         run: |
           echo "current=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-          if [ "${{ github.ref_name }}" = "main" ]; then
+          # GITHUB_REF may be refs/heads/<branch> or refs/tags/<tag>
+          branch="${GITHUB_REF#refs/heads/}"
+          if [ "$branch" = "$GITHUB_REF" ]; then
+            # Not a branch ref, fallback to extracting last part
+            branch="${GITHUB_REF##*/}"
+          fi
+          if [ "$branch" = "main" ]; then
             echo "base=$(git rev-parse HEAD^)" >> $GITHUB_OUTPUT
           else
-            # Find the fork point from main
             base_commit=$(git merge-base origin/main HEAD)
             echo "base=$base_commit" >> $GITHUB_OUTPUT
           fi
