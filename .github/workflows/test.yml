@@ -16,11 +16,11 @@ jobs:
           branch="${{ github.event.deployment.ref }}"
           deployed_sha="${{ github.event.deployment.sha }}"
           if [ "$branch" = "main" ]; then
-            base=$(git rev-parse main^)
-            ref=$(git rev-parse main)
+            base=$(git rev-parse "${deployed_sha}^")
+            ref="$deployed_sha"
           else
-            base=$(git rev-parse origin/main)
-            ref=$deployed_sha
+            base=$(git merge-base origin/main "$deployed_sha")
+            ref="$deployed_sha"
           fi
           echo "base=$base" >> $GITHUB_OUTPUT
           echo "ref=$ref" >> $GITHUB_OUTPUT
