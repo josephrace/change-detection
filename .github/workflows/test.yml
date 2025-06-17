@@ -10,16 +10,22 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 2 # Needed to get previous commit on the branch
-      - name: Get current and previous commit SHAs
+      - name: Get current and base commit SHAs
         id: commits
         run: |
           echo "current=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-          echo "previous=$(git rev-parse HEAD^)" >> $GITHUB_OUTPUT
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "base=$(git rev-parse HEAD^)" >> $GITHUB_OUTPUT
+          else
+            # Find the fork point from main
+            base_commit=$(git merge-base origin/main HEAD)
+            echo "base=$base_commit" >> $GITHUB_OUTPUT
+          fi
       - name: Paths Filter (dorny/paths-filter)
         id: filter
         uses: dorny/paths-filter@v3
         with:
-          base: ${{ steps.commits.outputs.previous }}
+          base: ${{ steps.commits.outputs.base }}
           ref: ${{ steps.commits.outputs.current }}
           filters: |
             a:
