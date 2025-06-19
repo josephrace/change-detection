@@ -14,11 +14,11 @@ jobs:
         id: base
         run: |
           git fetch origin main
-          if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "Main branch"
+          if git merge-base --is-ancestor HEAD origin/main; then
+            echo "On main"
             BASE=$(git rev-list origin/main | sed -n 2p)
           else
-            echo "Not main branch"
+            echo "On branch"
             BASE=$(git merge-base HEAD origin/main)
           fi
           echo "BASE: $BASE"
