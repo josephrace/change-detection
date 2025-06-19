@@ -14,7 +14,8 @@ jobs:
         id: base
         run: |
           if [ "${GITHUB_REF##*/}" = "main" ]; then
-            BASE=$(git rev-parse HEAD~1)
+            git fetch origin main
+            BASE=$(git rev-list origin/main | sed -n 2p)
           else
             git fetch origin main
             BASE=$(git merge-base HEAD origin/main)
