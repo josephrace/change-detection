@@ -13,13 +13,15 @@ jobs:
       - name: Get base commit
         id: base
         run: |
+          git fetch origin main
           if [ "${GITHUB_REF##*/}" = "main" ]; then
-            git fetch origin main
+            echo "Main branch"
             BASE=$(git rev-list origin/main | sed -n 2p)
           else
-            git fetch origin main
+            echo "Not main branch"
             BASE=$(git merge-base HEAD origin/main)
           fi
+          echo "BASE: $BASE"
           echo "base_commit=$BASE" >> $GITHUB_OUTPUT
       - name: Paths Filter (dorny/paths-filter)
         id: filter
