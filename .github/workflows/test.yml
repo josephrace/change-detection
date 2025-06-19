@@ -14,7 +14,7 @@ jobs:
         id: base
         run: |
           git fetch origin main
-          if [ "${GITHUB_REF##*/}" = "main" ]; then
+          if [ "${{ github.ref_name }}" = "main" ]; then
             echo "Main branch"
             BASE=$(git rev-list origin/main | sed -n 2p)
           else
