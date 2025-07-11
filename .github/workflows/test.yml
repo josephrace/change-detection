@@ -16,7 +16,7 @@ jobs:
           git fetch origin main
           if git merge-base --is-ancestor HEAD origin/main; then
             echo "On main"
-            BASE=$(git rev-list origin/main | sed -n 2p)
+            BASE=$(git rev-parse HEAD^)
           else
             echo "On branch"
             BASE=$(git merge-base HEAD origin/main)
